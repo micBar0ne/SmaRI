@@ -1,24 +1,27 @@
 # SmaRI – Smart Remote Intercom
 
-**SmaRI** (Smart Remote Intercom) is a compact and smart device that upgrades any traditional intercom, allowing you to open gates or doors remotely through the internet using an Android app.
+**SmaRI** (Smart Remote Intercom) is a compact and smart Wi-Fi-enabled device that upgrades any traditional intercom system, allowing you to open gates or doors remotely through the internet using an Android app.
 
 ---
 
 ## 🚀 Project Overview
 
-SmaRI connects to your existing intercom system and gives it Wi-Fi connectivity using an Arduino-based controller.  
-It operates silently thanks to solid-state relays and can trigger intercom or gate commands remotely through simple HTTP requests.
+SmaRI connects to your existing intercom’s control lines and gives it Wi-Fi connectivity using an **ESP32-based Arduino board**.  
+It uses two **5V mechanical relays** to simulate button presses for gate or door opening, and an **OLED display (SSD1306 128×64)** to show network status, Wi-Fi signal strength, and operation feedback.
 
-The project’s goal is to make any analog intercom “smart” — controllable from anywhere — with minimal modification to the original system.
+The goal is to make any analog intercom “smart” — controllable from anywhere — with minimal modification to the original installation.
 
 ---
 
 ## ⚙️ How It Works
 
-- The **Arduino** (ESP32 / ESP8266 / Arduino Mini) is connected to your intercom’s control lines.  
-- It connects to your **Wi-Fi network** and waits for commands from an **Android app** or a **web request**.
-- When a command is received, it **activates a relay** for a short time (≈0.5–1 second) to simulate pressing the gate/door button.
-- The system can **report its status** or confirm that the action has been executed.
+- The **ESP32 module**, mounted on an Arduino-compatible board, manages Wi-Fi and control logic.  
+- It connects to your **home network** and listens for **HTTP GET** requests from an **Android app** or a web interface.  
+- When a command is received, it **activates one of the two relays** for about 0.5–1 second to mimic pressing a button.  
+- The **OLED display** shows:
+  - Wi-Fi connection status  
+  - Signal strength  
+  - Action feedback (e.g., “Gate Opening”, “Pedestrian Gate Triggered”)  
 
 ---
 
@@ -26,43 +29,44 @@ The project’s goal is to make any analog intercom “smart” — controllable
 
 | Component | Description |
 |------------|-------------|
-| Arduino Mini / ESP8266 / ESP32 | Main microcontroller board |
-| 2-channel Relay Module (SRD) | For reliable gate control |
-| 5V Power Supply | Powers the board and relays |
-| Wi-Fi Module | Built-in or external for internet access |
-| Wires, breadboard, connectors | For prototyping |
-| 3D-Printed Enclosure | Custom case for all components |
+| **ESP32 with onboard OLED (SSD1306 128×64)** | Main microcontroller with display |
+| **2-channel 5V relay module** | Controls two independent circuits (garage gate + pedestrian gate) |
+| **5V Power Supply** | Powers ESP32 and relays |
+| **DDNS / Port Forwarding** | Enables remote internet control |
+| **Wires, breadboard, connectors** | For wiring and prototyping |
+| **3D-Printed Case** | Enclosure for all components |
 
 ---
 
 ## 🧠 Features
 
-- 🌐 Internet remote control via HTTP GET commands  
-- 📱 Android app interface  
-- 🔇 Silent relay operation (no clicks)  
-- 🚪 Dual-relay control — garage + pedestrian gate  
-- 🧰 Modular and open-source design  
-- 🧾 Supports DDNS for external access  
+- 🌐 Wi-Fi remote control via HTTP GET requests  
+- 📱 Android app support for easy operation  
+- 🔌 Dual relay output — control two different gates or functions  
+- 🖥️ Onboard OLED display showing connection, signal, and operation status  
+- 🧾 Supports DDNS for remote access outside the local network  
+- 🧰 Fully open-source and Arduino-compatible  
 
 ---
 
 ## 🧱 Development Steps
 
-1. 🔌 **Hardware Setup** – Connect Arduino and relays to the intercom.  
-2. 💡 **Basic Test Script** – Verify relay activation via serial or Wi-Fi.  
-3. 🌍 **Network Integration** – Implement HTTP GET control with DDNS.  
-4. 📲 **App Communication** – Pair Android app with the device.  
-5. 🧩 **Enclosure Design** – 3D model and print the housing.  
-6. 🧪 **Real Intercom Testing** – Validate control and timing with actual system.  
-7. 🎉 **Deployment** – Install and enjoy a smart, quiet, internet-enabled intercom.
+1. **Hardware Setup** – Connect ESP32, relays, OLED display, and power supply.  
+2. **Basic Test Script** – Verify each relay toggles correctly via serial monitor.  
+3. **Wi-Fi Integration** – Connect to local network and handle HTTP GET commands.  
+4. **Display UI** – Show connection, RSSI signal, and triggered actions.  
+5. **App Communication** – Send relay commands from Android app or browser.  
+6. **Enclosure Design** – 3D print a custom box for the device.  
+7. **Final Test** – Integrate with real intercom and verify timing and reliability.  
 
 ---
 
 ## 🧭 Future Improvements
 
-- Add MQTT / Home Assistant support  
-- Include OLED display for local feedback  
-- Integrate push notifications or voice assistants  
+- Add MQTT / Home Assistant integration  
+- Include configuration menu on OLED screen  
+- Add local button input for manual gate control  
+- Implement OTA firmware updates  
 
 ---
 
