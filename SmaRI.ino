@@ -71,7 +71,7 @@ void setup() {
 
   u8g2.clearBuffer();
   u8g2.setFont(u8g2_font_7x14B_tf);
-  u8g2.drawStr(0, 14, "Initiliazing...!");
+  u8g2.drawStr(0, 14, "Initiliazing...");
   u8g2.sendBuffer();
 }
 
@@ -88,7 +88,7 @@ void loop() {
           ipStr = WiFi.localIP().toString();
           rssi = WiFi.RSSI();
           connectedAt = millis();
-          u8g2.drawStr(0, 14, "Connecting...");
+          u8g2.drawStr(0, 14, "Connected");
         } else if (millis() - connectStart > CONNECT_TIMEOUT_MS) {
           uiState = WifiUiState::FAILED;
           lastRetry = millis();
@@ -100,7 +100,7 @@ void loop() {
           uiState = WifiUiState::RECONNECTING;
           connectStart = millis();
         } else {
-          u8g2.drawStr(0, 14, "Connected!");
+          u8g2.drawStr(0, 14, "Connected");
           static unsigned long lastRssi = 0;
           if (millis() - lastRssi > 2000) {
             rssi = WiFi.RSSI();
@@ -119,7 +119,7 @@ void loop() {
       case WifiUiState::INIT:
       case WifiUiState::DISCONNECTED:
       default:
-        u8g2.drawStr(0, 14, "Connecting...!");
+        u8g2.drawStr(0, 14, "Connecting...");
         if (s != WL_CONNECTED) {
           beginWifiTry();
         } else {
