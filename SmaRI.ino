@@ -75,7 +75,7 @@ void beginWifiTry() {
   const int lineH  = 13;
 
   // Row Y baselines (small font ~10px tall)
-  const int yRow1 = 10;        // row 1 (top)
+  const int yRow1 = 14;        // row 1 (top)
   const int yRow2   = yRow1 + 10 + lineH;  // row 2
   const int yRow3   = yRow2   + lineH;  // row 3
   const int yRow4   = yRow3   + lineH;  // row 4 (optional)
@@ -91,6 +91,24 @@ String fitToWidth(const String &s, int maxW) {
     t.remove(t.length() - 1);
   }
   return "…";
+}
+
+// Wi-Fi bars rendered programmatically (0..3 bars)
+void drawWifiBars16(int x, int y, int bars) {
+  // bars aligned to bottom of the 16×16
+  int bx = x+2, by = y+14, w=3, gap=2;
+  for (int i=0;i<3;i++) {
+    int h = 3 + i*4;                 // 3,7,11 px tall
+    if (i < bars) u8g2.drawBox(bx + i*(w+gap), by - h, w, h);
+    else          u8g2.drawFrame(bx + i*(w+gap), by - h, w, h);
+  }
+}
+
+int rssiToBars(int rssi) {          // RSSI → 0..3
+  if (rssi > -60) return 3;
+  if (rssi > -75) return 2;
+  if (rssi > -90) return 1;
+  return 0;
 }
 
 void setup() {
@@ -133,6 +151,7 @@ void loop() {
             rssi = WiFi.RSSI();
             lastRssi = millis();
           }
+          drawWifiBars16(128-18, 0, rssiToBars(rssi));
         }
         break;
 
