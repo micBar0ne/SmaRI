@@ -15,6 +15,7 @@ public:
   void loop();
 
 private:
+  StatusLed    _statusLed;
   SmaRiWifi    _wifi;
   SmaRiDisplay _display;
 

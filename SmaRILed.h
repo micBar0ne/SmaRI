@@ -56,7 +56,7 @@ public:
 
 private:
   void updateConnected(unsigned long now) {
-    const unsigned long PERIOD = 5000;
+    const unsigned long PERIOD = 3000;
     const unsigned long ON_TIME = 100;
 
     unsigned long t = now % PERIOD;

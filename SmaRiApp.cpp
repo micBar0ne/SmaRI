@@ -10,15 +10,10 @@ SmaRiApp::SmaRiApp()
         WIFI_DNS1,
         WIFI_DNS2)
 {}
-#ifndef LED_BUILTIN
-  #define LED_BUILTIN 2
-#endif
-
-const int STATUS_LED_PIN = LED_BUILTIN;
 
 void SmaRiApp::setup() {
-  pinMode(STATUS_LED_PIN, OUTPUT);
-  digitalWrite(STATUS_LED_PIN, HIGH); 
+  _statusLed.begin(STATUS_LED_PIN);
+  _statusLed.setMode(LedMode::Connecting);
 
   _initStart = millis();
 
@@ -31,9 +26,10 @@ void SmaRiApp::setup() {
 void SmaRiApp::loop() {
   _wifi.loop();
   unsigned long now = millis();
-
+  _statusLed.update(); 
   if (now - _initStart < INIT_SCREEN_DURATION_MS) {
     _display.renderInitScreen(_initStart, INIT_SCREEN_DURATION_MS);
+    
     return;
   }
 
@@ -42,11 +38,14 @@ void SmaRiApp::loop() {
   switch (s) {
     case WifiConnState::CONNECTING:
       _display.renderConnecting();
+      _statusLed.setMode(LedMode::Connecting);
       break;
 
     case WifiConnState::CONNECTED: {
       unsigned long connectedFor = now - _wifi.connectedSince();
       int rssi = _wifi.rssi();
+      
+      _statusLed.setMode(LedMode::Connected);
 
       if (connectedFor < WIFI_SHOW_INFO_TIMEOUT) {
         _display.renderWifiInfo(String(WIFI_SSID), _wifi.ip(), rssi);
@@ -63,6 +62,7 @@ void SmaRiApp::loop() {
     case WifiConnState::IDLE:
     default:
       _display.renderConnecting();
+      _statusLed.setMode(LedMode::Connecting);
       break;
   }
 }

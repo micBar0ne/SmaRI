@@ -8,7 +8,7 @@
   #define LED_BUILTIN 2
 #endif
 
-static const int STATUS_LED_PIN = 2;
+static const int STATUS_LED_PIN = LED_BUILTIN;
 
 // ---------- WIFI SETTINGS ----------
 const char* WIFI_SSID = "<YOUR-SSID>";
