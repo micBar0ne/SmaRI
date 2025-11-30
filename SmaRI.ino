@@ -143,16 +143,25 @@ void loop() {
         }
         break;
       case WifiUiState::SHOW_INFO:
+      {
           u8g2.drawStr(left, yRow1, "Connected");
-          u8g2.drawStr(left, yRow2, ("SSID: " + String(WIFI_SSID)).c_str());
-          u8g2.drawStr(left, yRow3, ("IP: " + ipStr).c_str());
-          u8g2.drawStr(left, yRow4, ("RSSI: " + String(rssi)).c_str());
+
+          String SSID_INFO = "SSID:" + String(WIFI_SSID);
+          u8g2.drawStr(left, yRow2, fitToWidth(SSID_INFO, 124).c_str());
+
+          String IP_INFO = "IP: " + ipStr;
+          u8g2.drawStr(left, yRow3, fitToWidth(IP_INFO, 124).c_str());
+
+          char rssiBuf[24];
+          snprintf(rssiBuf, sizeof(rssiBuf), "RSSI:%ddBm", rssi);
+          u8g2.drawStr(left, yRow4, rssiBuf);
 
           if (millis() - connectedAt > SHOW_INFO_TIMEOUT) {
             uiState = WifiUiState::CONNECTED;
           }
         
-      break;
+          break;
+      }
       case WifiUiState::INIT:
       case WifiUiState::DISCONNECTED:
       default:
