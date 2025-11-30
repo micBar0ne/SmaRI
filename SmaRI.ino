@@ -73,7 +73,7 @@ void beginWifiTry() {
 
   // --- layout constants (tuned for 128x64) ---
   const int left   = 2;
-  const int leftIconSpace = 16;
+  const int leftIconSpace = 18;
   const int lineH  = 13;
 
   // Row Y baselines (small font ~10px tall)
@@ -97,7 +97,6 @@ String fitToWidth(const String &s, int maxW) {
 
 // Wi-Fi bars rendered programmatically (0..3 bars)
 void drawWifiBars16(int x, int y, int bars) {
-  // bars aligned to bottom of the 16×16
   int bx = x+2, by = y+14, w=3, gap=2;
   for (int i=0;i<3;i++) {
     int h = 3 + i*4;                 // 3,7,11 px tall
@@ -106,20 +105,38 @@ void drawWifiBars16(int x, int y, int bars) {
   }
 }
 
-// Draw Check Icon
+// Draw Check Icon - Y is the top of the icon
 void drawCheck16(int x, int y, int thickness = 3) { 
-  // y is top
   for (int o = 0; o < thickness; ++o) {
     u8g2.drawLine(x+3,  y+8+o, x+6,  y+12+o);
     u8g2.drawLine(x+7,  y+12+o, x+13, y+2+o);
   }
 }
 
-void drawSpinner16(int x, int y) { // small spinner in 16×16 box
+// Spinner in 16×16 box
+void drawSpinner16(int x, int y) { 
   int cx=x+8, cy=y+8, r=6;
   u8g2.drawCircle(cx, cy, r);
-  float a = (millis()%800)*(2*PI/800.0f);
+  float a = (millis() % 800) * ( 2*PI / 800.0f);
   u8g2.drawLine(cx, cy, cx + (int)(cos(a)*r), cy + (int)(sin(a)*r));
+}
+
+// Loading bar
+void drawLoading(int x, int y, int loaderHeigth = 6, int loaderWidth = 16) {
+  u8g2.drawFrame(x, y, loaderWidth, loaderHeigth);
+  uint32_t elapsed = millis() - initializeStart;
+  float progress = elapsed / 2000.0f;
+
+  if (progress > 1.0f) progress = 1.0f;
+
+  uint8_t filledWidth = (uint8_t)(progress * loaderWidth + 0.5f);
+
+  if (filledWidth > 0) {
+    
+    u8g2.drawBox(x, y, filledWidth, loaderHeigth );
+  }
+  else
+  drawSpinner16(32,32);
 }
 
 int rssiToBars(int rssi) {          // RSSI → 0..3
@@ -130,19 +147,21 @@ int rssiToBars(int rssi) {          // RSSI → 0..3
 }
 
 void setup() {
+  initializeStart = millis();
+
   u8g2.begin();
   u8g2.setContrast(255);
 
   u8g2.clearBuffer();
   u8g2.setFont(UI_FONT);
-  u8g2.drawStr(left, yRow1, "Initiliazing...");
-  u8g2.sendBuffer();
 }
 
 void loop() {
   wl_status_t s = WiFi.status();
+
+  u8g2.clearBuffer();
+
   if (millis() > initializeStart + 2000) {
-    u8g2.clearBuffer();
     switch (uiState) {
       case WifiUiState::CONNECTING:
       case WifiUiState::RECONNECTING:
@@ -215,6 +234,9 @@ void loop() {
         }
         break;
     }
+  }else{
+    drawLoading(0,5);
+    u8g2.drawStr(leftIconSpace, yRow1, "Initiliazing...");
   }
 
   u8g2.sendBuffer();
