@@ -42,7 +42,8 @@ enum class WifiUiState {
 WifiUiState uiState = WifiUiState::INIT;
 String ipStr = "";
 int rssi = 0;
-unsigned long connectStart = 0;
+unsigned long initializeStart = 0;
+unsigned long connectAttemptStart = 0;
 unsigned long lastRetry = 0;
 unsigned long connectedAt = 0;
 // ----------------------------------
@@ -53,7 +54,7 @@ void beginWifiTry() {
   WiFi.setAutoReconnect(true);
   WiFi.persistent(false);
 
-  connectStart = millis();
+  connectAttemptStart = millis();
   uiState = (uiState == WifiUiState::FAILED) ? WifiUiState::RECONNECTING : WifiUiState::CONNECTING;
 
   WiFi.disconnect(false, false);
@@ -72,10 +73,11 @@ void beginWifiTry() {
 
   // --- layout constants (tuned for 128x64) ---
   const int left   = 2;
+  const int leftIconSpace = 16;
   const int lineH  = 13;
 
   // Row Y baselines (small font ~10px tall)
-  const int yRow1 = 14;        // row 1 (top)
+  const int yRow1 = 12;        // row 1 (top)
   const int yRow2   = yRow1 + 10 + lineH;  // row 2
   const int yRow3   = yRow2   + lineH;  // row 3
   const int yRow4   = yRow3   + lineH;  // row 4 (optional)
@@ -104,6 +106,22 @@ void drawWifiBars16(int x, int y, int bars) {
   }
 }
 
+// Draw Check Icon
+void drawCheck16(int x, int y, int thickness = 3) { 
+  // y is top
+  for (int o = 0; o < thickness; ++o) {
+    u8g2.drawLine(x+3,  y+8+o, x+6,  y+12+o);
+    u8g2.drawLine(x+7,  y+12+o, x+13, y+2+o);
+  }
+}
+
+void drawSpinner16(int x, int y) { // small spinner in 16×16 box
+  int cx=x+8, cy=y+8, r=6;
+  u8g2.drawCircle(cx, cy, r);
+  float a = (millis()%800)*(2*PI/800.0f);
+  u8g2.drawLine(cx, cy, cx + (int)(cos(a)*r), cy + (int)(sin(a)*r));
+}
+
 int rssiToBars(int rssi) {          // RSSI → 0..3
   if (rssi > -60) return 3;
   if (rssi > -75) return 2;
@@ -123,18 +141,19 @@ void setup() {
 
 void loop() {
   wl_status_t s = WiFi.status();
-  if (millis() > connectStart + 2000) {
+  if (millis() > initializeStart + 2000) {
     u8g2.clearBuffer();
     switch (uiState) {
       case WifiUiState::CONNECTING:
       case WifiUiState::RECONNECTING:
-        u8g2.drawStr(left, yRow1, "Connecting...");
+        drawSpinner16(0,0);
+        u8g2.drawStr(leftIconSpace, yRow1, "Connecting...");
         if (s == WL_CONNECTED) {
           uiState = WifiUiState::SHOW_INFO;
           ipStr = WiFi.localIP().toString();
           rssi = WiFi.RSSI();
           connectedAt = millis();
-        } else if (millis() - connectStart > CONNECT_TIMEOUT_MS) {
+        } else if (millis() - connectAttemptStart > CONNECT_TIMEOUT_MS) {
           uiState = WifiUiState::FAILED;
           lastRetry = millis();
         }
@@ -143,9 +162,9 @@ void loop() {
       case WifiUiState::CONNECTED:
         if (s != WL_CONNECTED) {
           uiState = WifiUiState::RECONNECTING;
-          connectStart = millis();
+          connectAttemptStart = millis();
         } else {
-          u8g2.drawStr(left, yRow1, "Connected");
+          drawCheck16(0,0);
           static unsigned long lastRssi = 0;
           if (millis() - lastRssi > 2000) {
             rssi = WiFi.RSSI();
@@ -156,35 +175,39 @@ void loop() {
         break;
 
       case WifiUiState::FAILED:
-        u8g2.drawStr(left, yRow1, "Failed!");
+        u8g2.drawStr(leftIconSpace, yRow1, "Failed!");
         if (millis() - lastRetry > RETRY_INTERVAL_MS) {
           beginWifiTry();
         }
         break;
       case WifiUiState::SHOW_INFO:
       {
-          u8g2.drawStr(left, yRow1, "Connected");
+        drawCheck16(0,0);
+        drawWifiBars16(128-18, 0, rssiToBars(rssi));
 
-          String SSID_INFO = "SSID:" + String(WIFI_SSID);
-          u8g2.drawStr(left, yRow2, fitToWidth(SSID_INFO, 124).c_str());
+        u8g2.drawStr(leftIconSpace, yRow1, "Connected");
 
-          String IP_INFO = "IP: " + ipStr;
-          u8g2.drawStr(left, yRow3, fitToWidth(IP_INFO, 124).c_str());
+        String SSID_INFO = "SSID:" + String(WIFI_SSID);
+        u8g2.drawStr(left, yRow2, fitToWidth(SSID_INFO, 124).c_str());
 
-          char rssiBuf[24];
-          snprintf(rssiBuf, sizeof(rssiBuf), "RSSI:%ddBm", rssi);
-          u8g2.drawStr(left, yRow4, rssiBuf);
+        String IP_INFO = "IP: " + ipStr;
+        u8g2.drawStr(left, yRow3, fitToWidth(IP_INFO, 124).c_str());
 
-          if (millis() - connectedAt > SHOW_INFO_TIMEOUT) {
-            uiState = WifiUiState::CONNECTED;
-          }
-        
-          break;
+        char rssiBuf[24];
+        snprintf(rssiBuf, sizeof(rssiBuf), "RSSI:%ddBm", rssi);
+        u8g2.drawStr(left, yRow4, rssiBuf);
+
+        if (millis() - connectedAt > SHOW_INFO_TIMEOUT) {
+          uiState = WifiUiState::CONNECTED;
+        }
+      
+        break;
       }
       case WifiUiState::INIT:
       case WifiUiState::DISCONNECTED:
       default:
-        u8g2.drawStr(left, yRow1, "Connecting...");
+        drawSpinner16(0,0);
+        u8g2.drawStr(leftIconSpace, yRow1, "Connecting...");
         if (s != WL_CONNECTED) {
           beginWifiTry();
         } else {
