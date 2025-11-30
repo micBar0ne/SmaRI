@@ -5,8 +5,8 @@
 #include <WiFi.h>
 
 // ---------- WIFI SETTINGS ----------
-// const char* WIFI_SSID = "<YOUR-SSID>";
-// const char* WIFI_PASS = "<YOUR-PASSWORD>";
+const char* WIFI_SSID = "<YOUR-SSID>";
+const char* WIFI_PASS = "<YOUR-PASSWORD>";
 
 static const uint32_t WIFI_CONNECT_TIMEOUT_MS = 15000;
 static const uint32_t WIFI_RETRY_INTERVAL_MS  = 5000;
