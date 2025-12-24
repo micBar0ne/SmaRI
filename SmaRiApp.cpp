@@ -11,6 +11,50 @@ SmaRiApp::SmaRiApp()
         WIFI_DNS2)
 {}
 
+static const char* wifiStateToStr(WifiConnState s) {
+  switch (s) {
+    case WifiConnState::CONNECTED:  return "connected";
+    case WifiConnState::CONNECTING: return "connecting";
+    case WifiConnState::FAILED:     return "failed";
+    case WifiConnState::IDLE:
+    default:                        return "idle";
+  }
+}
+
+static const char* relayIdToStr(RelayId id) {
+  switch (id) {
+    case RelayId::RELAY_1: return "relay_1";
+    case RelayId::RELAY_2: return "relay_2";
+    default: return "unknown";
+  }
+}
+
+String SmaRiApp::buildStatusJson() const {
+  const unsigned long now = millis();
+  const WifiConnState s = _wifi.state();
+  const bool connected = (s == WifiConnState::CONNECTED);
+
+  const int rssi = connected ? _wifi.rssi() : 0;
+  const String ipStr = connected ? _wifi.ip() : "";
+
+  const bool relayBusy = _relay.isBusy();
+  const String relayActive = relayBusy ? relayIdToStr(_relay.activeRelay()) : "";
+  const uint32_t remaining = relayBusy ? _relay.remainingMs(now) : 0;
+
+  String json = "{";
+  json += "\"uptime_ms\":" + String(now) + ",";
+  json += "\"wifi_state\":\"" + String(wifiStateToStr(s)) + "\",";
+  json += "\"ip\":\"" + ipStr + "\",";
+  json += "\"rssi\":" + String(rssi) + ",";
+  json += "\"relay_busy\":" + String(relayBusy ? "true" : "false") + ",";
+  json += "\"relay_active\":\"" + relayActive + "\",";
+  json += "\"relay_remaining_ms\":" + String(remaining);
+  json += "}";
+
+  return json;
+}
+
+
 void SmaRiApp::setup() {
   _statusLed.begin(STATUS_LED_PIN);
   _statusLed.setMode(LedMode::Connecting);
@@ -23,6 +67,10 @@ void SmaRiApp::setup() {
   _wifi.begin();
 
   _relay.begin();
+
+  _web.setStatusProvider([this]() {
+    return this->buildStatusJson();
+  });
 }
 
 void SmaRiApp::loop() {
@@ -46,7 +94,7 @@ void SmaRiApp::loop() {
     case WifiConnState::CONNECTED: {
       unsigned long connectedFor = now - _wifi.connectedSince();
       int rssi = _wifi.rssi();
-
+      
       _statusLed.setMode(LedMode::Connected);
 
       if (connectedFor < WIFI_SHOW_INFO_TIMEOUT) {
@@ -74,8 +122,8 @@ void SmaRiApp::loop() {
   } else if (s !=  WifiConnState::CONNECTED && _web.isRunning()) {
     _web.end();
   }
+  
+  _relay.loop(now);
 
   _web.loop();
-
-  _relay.loop(now);
 }

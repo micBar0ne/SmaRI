@@ -1,6 +1,7 @@
 #pragma once
 #include <Arduino.h>
 #include <WebServer.h>
+#include <functional>
 
 class SmaRiWebServer {
 public:
@@ -11,9 +12,13 @@ public:
   void loop();         // handleClient()
   bool isRunning() const;
 
+void setStatusProvider(std::function<String()> provider);
+
 private:
   void registerRoutes();
 
   WebServer _server;
   bool _running = false;
+
+  std::function<String()> _statusProvider;
 };

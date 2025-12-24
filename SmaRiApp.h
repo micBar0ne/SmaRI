@@ -24,6 +24,8 @@ private:
   SmaRiRelayController _relay;
 
   unsigned long _initStart = 0;
+
+  String buildStatusJson() const;
 };
 
 #endif
