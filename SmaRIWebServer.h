@@ -24,6 +24,7 @@ private:
 
   WebServer _server;
   bool _running = false;
+  bool requireAuth();
 
   std::function<String()> _statusProvider;
   std::function<bool(uint8_t, uint32_t, String&)> _relayHandler;

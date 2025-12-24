@@ -12,6 +12,11 @@
 
 static const int STATUS_LED_PIN = LED_BUILTIN;
 
+// ---------- WEB AUTH ----------
+inline constexpr char WEB_USER[] = "admin";
+inline constexpr char WEB_PASS[] = "password";
+inline constexpr bool WEB_AUTH_ENABLED = true;
+
 // ---------- WIFI SETTINGS ----------
 inline constexpr const char* WIFI_SSID = "<YOUR-SSID>";
 inline constexpr const char* WIFI_PASS = "<YOUR-PASSWORD>";
