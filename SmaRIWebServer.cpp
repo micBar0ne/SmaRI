@@ -55,6 +55,17 @@ void SmaRiWebServer::registerRoutes() {
     _server.send(404, "text/plain", "Not Found");
   });
 
+  _server.on("/api/log", HTTP_GET, [this]() {
+    if (!requireAuth()) return;
+
+    if (_logProvider) {
+      _server.send(200, "application/json", _logProvider());
+    } else {
+      _server.send(503, "application/json", "{\"error\":\"log provider not set\"}");
+    }
+  });
+
+
   _server.on("/", HTTP_GET, [this]() {
     if (!requireAuth()) return;
     _server.send(200, "text/html", R"HTML(
@@ -359,4 +370,8 @@ bool SmaRiWebServer::requireAuth() {
 
   _server.requestAuthentication();
   return false;
+}
+
+void SmaRiWebServer::setLogProvider(std::function<String()> provider) {
+  _logProvider = provider;
 }

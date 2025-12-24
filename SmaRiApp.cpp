@@ -49,6 +49,14 @@ String SmaRiApp::buildStatusJson() const {
   json += "\"relay_busy\":" + String(relayBusy ? "true" : "false") + ",";
   json += "\"relay_active\":\"" + relayActive + "\",";
   json += "\"relay_remaining_ms\":" + String(remaining);
+  
+  if (_audit.size() > 0) {
+    AuditEntry e = _audit.getNewest(0);
+    json += ",\"last_action_ms\":" + String(e.atMs);
+    json += ",\"last_action_relay\":" + String(e.relayId);
+    json += ",\"last_action_ok\":" + String(e.ok ? "true" : "false");
+  }
+
   json += "}";
 
   return json;
@@ -73,7 +81,7 @@ void SmaRiApp::setup() {
   });
 
   _web.setRelayCommandHandler([this](uint8_t id, uint32_t ms, String& error) {
-    if (ms == 0) ms = RELAY_DEFAULT_PULSE_MS;
+    if (ms == 0) ms = RELAY_DEFAULT_PULSE_MS;  // keep WebServer generic
 
     RelayId relay;
     switch (id) {
@@ -81,15 +89,22 @@ void SmaRiApp::setup() {
       case 2: relay = RelayId::RELAY_2; break;
       default:
         error = "invalid relay id";
+        _audit.add(AuditEventType::RELAY_TRIGGER_FAIL, id, ms, false);
         return false;
     }
 
-    if (!_relay.trigger(relay, ms)) {
-      error = _relay.lastError();
-      return false;
-    }
+    const bool ok = _relay.trigger(relay, ms);
 
-    return true;
+    // ✅ audit log lives here (best place)
+    _audit.add(ok ? AuditEventType::RELAY_TRIGGER_OK : AuditEventType::RELAY_TRIGGER_FAIL,
+               id, ms, ok);
+
+    if (!ok) error = _relay.lastError();
+    return ok;
+  });
+
+  _web.setLogProvider([this]() {
+    return _audit.toJson();  // returns JSON array
   });
 }
 
@@ -114,7 +129,7 @@ void SmaRiApp::loop() {
     case WifiConnState::CONNECTED: {
       unsigned long connectedFor = now - _wifi.connectedSince();
       int rssi = _wifi.rssi();
-      
+
       _statusLed.setMode(LedMode::Connected);
 
       if (connectedFor < WIFI_SHOW_INFO_TIMEOUT) {
