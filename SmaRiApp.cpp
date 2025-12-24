@@ -71,6 +71,26 @@ void SmaRiApp::setup() {
   _web.setStatusProvider([this]() {
     return this->buildStatusJson();
   });
+
+  _web.setRelayCommandHandler([this](uint8_t id, uint32_t ms, String& error) {
+    if (ms == 0) ms = RELAY_DEFAULT_PULSE_MS;
+
+    RelayId relay;
+    switch (id) {
+      case 1: relay = RelayId::RELAY_1; break;
+      case 2: relay = RelayId::RELAY_2; break;
+      default:
+        error = "invalid relay id";
+        return false;
+    }
+
+    if (!_relay.trigger(relay, ms)) {
+      error = _relay.lastError();
+      return false;
+    }
+
+    return true;
+  });
 }
 
 void SmaRiApp::loop() {

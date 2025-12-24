@@ -12,7 +12,12 @@ public:
   void loop();         // handleClient()
   bool isRunning() const;
 
-void setStatusProvider(std::function<String()> provider);
+void setStatusProvider(std::function<String()> provider);\
+
+void setRelayCommandHandler(
+  std::function<bool(uint8_t relayId, uint32_t durationMs, String& error)>
+    handler
+);
 
 private:
   void registerRoutes();
@@ -21,4 +26,5 @@ private:
   bool _running = false;
 
   std::function<String()> _statusProvider;
+  std::function<bool(uint8_t, uint32_t, String&)> _relayHandler;
 };
