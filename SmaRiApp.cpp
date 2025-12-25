@@ -81,7 +81,7 @@ void SmaRiApp::setup() {
   });
 
   _web.setRelayCommandHandler([this](uint8_t id, uint32_t ms, String& error) {
-    if (ms == 0) ms = RELAY_DEFAULT_PULSE_MS;  // keep WebServer generic
+    if (ms == 0) ms = RELAY_DEFAULT_PULSE_MS;
 
     RelayId relay;
     switch (id) {
@@ -93,9 +93,10 @@ void SmaRiApp::setup() {
         return false;
     }
 
-    const bool ok = _relay.trigger(relay, ms);
+    const bool ok = RELAY_USE_DOUBLE_TAP
+      ? _relay.triggerDoubleTap(relay, RELAY_TAP_ON_MS, RELAY_TAP_GAP_MS)
+      : _relay.trigger(relay, ms);
 
-    // ✅ audit log lives here (best place)
     _audit.add(ok ? AuditEventType::RELAY_TRIGGER_OK : AuditEventType::RELAY_TRIGGER_FAIL,
                id, ms, ok);
 
@@ -104,7 +105,7 @@ void SmaRiApp::setup() {
   });
 
   _web.setLogProvider([this]() {
-    return _audit.toJson();  // returns JSON array
+    return _audit.toJson();
   });
 }
 
