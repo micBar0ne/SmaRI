@@ -1,5 +1,13 @@
+#pragma once
+
 #ifndef SMARI_CONFIG_H
 #define SMARI_CONFIG_H
+
+#include "Secrets.h"
+
+#ifndef SMARI_WIFI_SSID
+  #error "Missing Secrets.h. Copy Secrets.h.example to Secrets.h and fill credentials."
+#endif
 
 #include <Arduino.h>
 #include <WiFi.h>
@@ -11,22 +19,37 @@
 static const int STATUS_LED_PIN = LED_BUILTIN;
 
 // ---------- WIFI SETTINGS ----------
-const char* WIFI_SSID = "<YOUR-SSID>";
-const char* WIFI_PASS = "<YOUR-PASSWORD>";
+inline constexpr char WIFI_SSID[] = SMARI_WIFI_SSID;
+inline constexpr char WIFI_PASS[] = SMARI_WIFI_PASS;
 
-static const uint32_t WIFI_CONNECT_TIMEOUT_MS = 15000;
-static const uint32_t WIFI_RETRY_INTERVAL_MS  = 5000;
+// ---------- WEB AUTH ----------
+inline constexpr char WEB_USER[] = SMARI_WEB_USER;
+inline constexpr char WEB_PASS[] = SMARI_WEB_PASS;
+inline constexpr bool WEB_AUTH_ENABLED = true;
+
+inline constexpr const uint32_t WIFI_CONNECT_TIMEOUT_MS = 15000;
+inline constexpr const uint32_t WIFI_RETRY_INTERVAL_MS  = 5000;
 
 // ---- Static IP settings ----
-static const bool WIFI_USE_STATIC_IP = true;
-static const IPAddress WIFI_LOCAL_IP(192, 168, 1, 87);
-static const IPAddress WIFI_GATEWAY(192, 168, 1, 1);
-static const IPAddress WIFI_SUBNET (255, 255, 255, 0);
-static const IPAddress WIFI_DNS1   (1, 1, 1, 1);
-static const IPAddress WIFI_DNS2   (8, 8, 8, 8);
+inline const bool WIFI_USE_STATIC_IP = true;
+inline const IPAddress WIFI_LOCAL_IP(192, 168, 1, 87);
+inline const IPAddress WIFI_GATEWAY(192, 168, 1, 1);
+inline const IPAddress WIFI_SUBNET (255, 255, 255, 0);
+inline const IPAddress WIFI_DNS1   (1, 1, 1, 1);
+inline const IPAddress WIFI_DNS2   (8, 8, 8, 8);
 
 // ---------- UI SETTINGS ----------
-static const uint32_t INIT_SCREEN_DURATION_MS = 2000;
-static const uint32_t WIFI_SHOW_INFO_TIMEOUT  = 5000;
+inline const uint32_t INIT_SCREEN_DURATION_MS = 2000;
+inline const uint32_t WIFI_SHOW_INFO_TIMEOUT  = 5000;
+
+// ---------- RELAY SETTINGS ----------
+inline constexpr int RELAY1_PIN = 26;
+inline constexpr int RELAY2_PIN = 27;
+
+inline constexpr bool RELAY_ACTIVE_LOW = true;
+
+inline constexpr uint32_t RELAY_DEFAULT_PULSE_MS = 200;
+inline constexpr uint32_t RELAY_MAX_PULSE_MS     = 300;
+inline constexpr bool RELAY_ALLOW_CUSTOM_MS      = false;
 
 #endif
