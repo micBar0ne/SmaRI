@@ -296,7 +296,7 @@ void SmaRiWebServer::registerRoutes() {
       }
 
       refreshStatus();
-      setInterval(refreshStatus, 2000);
+      setInterval(refreshStatus, 5000);
       </script>
       </body>
       </html>

@@ -37,7 +37,7 @@ bool SmaRiRelayController::trigger(RelayId id, uint32_t durationMs) {
     _lastError = "relay busy";
     return false;
   }
-  if (durationMs == 0 || durationMs > 10000) { // sane upper bound
+  if (durationMs == 0 || durationMs > 10000) {
     _lastError = "invalid duration";
     return false;
   }

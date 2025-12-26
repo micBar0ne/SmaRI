@@ -11,7 +11,6 @@ public:
   void begin();
   void loop(unsigned long now);
 
-  // returns true if trigger accepted
   bool trigger(RelayId id, uint32_t durationMs);
 
   bool isBusy() const { return _busy; }

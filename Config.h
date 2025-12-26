@@ -48,6 +48,8 @@ inline constexpr int RELAY2_PIN = 27;
 
 inline constexpr bool RELAY_ACTIVE_LOW = true;
 
-inline constexpr uint32_t RELAY_DEFAULT_PULSE_MS = 800;
+inline constexpr uint32_t RELAY_DEFAULT_PULSE_MS = 200;
+inline constexpr uint32_t RELAY_MAX_PULSE_MS     = 300;
+inline constexpr bool RELAY_ALLOW_CUSTOM_MS      = false;
 
 #endif
