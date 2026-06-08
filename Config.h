@@ -27,6 +27,20 @@ inline constexpr char WEB_USER[] = SMARI_WEB_USER;
 inline constexpr char WEB_PASS[] = SMARI_WEB_PASS;
 inline constexpr bool WEB_AUTH_ENABLED = true;
 
+// Auth protection settings
+inline constexpr uint8_t WEB_AUTH_MAX_FAILURES = 7;
+
+// How long the device stays locked after too many failed logins
+inline constexpr uint32_t WEB_AUTH_LOCKOUT_MS = 5UL * 60UL * 1000UL;   // 5 minutes
+
+// Failed attempts older than this are forgotten
+inline constexpr uint32_t WEB_AUTH_FAILURE_WINDOW_MS = 10UL * 60UL * 1000UL; // 10 minutes
+
+// After this number of wrong attempts we could apply a penalty.
+// Keep penalty disabled for now to avoid blocking delays.
+inline constexpr uint8_t WEB_AUTH_PENALTY_AFTER = 4;
+inline constexpr uint32_t WEB_AUTH_PENALTY_MS = 0;
+
 inline constexpr const uint32_t WIFI_CONNECT_TIMEOUT_MS = 15000;
 inline constexpr const uint32_t WIFI_RETRY_INTERVAL_MS  = 5000;
 

@@ -25,10 +25,17 @@ private:
 
   WebServer _server;
   bool _running = false;
-  bool requireAuth();
+  bool requireAuth(bool countFailure = true);
+
+  bool isLockoutActive(unsigned long now);
+  void startLockout(unsigned long now);
+  void clearLockout();
+  void registerAuthFailure(unsigned long now);
 
   unsigned int _authFailures = 0;
-  unsigned long _lockoutUntilMs = 0;
+  bool _lockoutActive = false;
+  unsigned long _lockoutStartedMs = 0;
+  unsigned long _lastAuthFailureMs = 0;
 
   std::function<String()> _statusProvider;
   std::function<bool(uint8_t, uint32_t, String&)> _relayHandler;
