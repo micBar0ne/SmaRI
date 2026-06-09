@@ -22,6 +22,21 @@ static const int STATUS_LED_PIN = LED_BUILTIN;
 inline constexpr char WIFI_SSID[] = SMARI_WIFI_SSID;
 inline constexpr char WIFI_PASS[] = SMARI_WIFI_PASS;
 
+// ---------- RADIO SETTINGS ----------
+// Bluetooth is not used by SmaRI.
+// Releasing BT memory saves RAM and ensures BT is not available in this boot.
+inline constexpr bool RADIO_DISABLE_BLUETOOTH = true;
+
+// Reduce ESP32 Wi-Fi TX power.
+// Unit is 0.25 dBm when using esp_wifi_set_max_tx_power().
+// 80 = 20 dBm
+// 60 = 15 dBm
+// 52 = 13 dBm
+// 44 = 11 dBm
+// 34 = 8.5 dBm
+inline constexpr bool WIFI_LIMIT_TX_POWER = true;
+inline constexpr int8_t WIFI_TX_POWER_QDBM = 34;  // 11 dBm, safe first test
+
 // ---------- WEB AUTH ----------
 inline constexpr char WEB_USER[] = SMARI_WEB_USER;
 inline constexpr char WEB_PASS[] = SMARI_WEB_PASS;
