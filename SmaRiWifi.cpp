@@ -1,4 +1,8 @@
 #include "SmaRIWifi.h"
+#include "Config.h"
+
+#include <esp_bt.h>
+#include <esp_wifi.h>
 
 SmaRiWifi::SmaRiWifi(const char* ssid,
                      const char* pass,
@@ -24,7 +28,19 @@ void SmaRiWifi::setTimeouts(uint32_t connectTimeoutMs, uint32_t retryIntervalMs)
 }
 
 void SmaRiWifi::begin() {
+  if (RADIO_DISABLE_BLUETOOTH) {
+    // SmaRI does not use Bluetooth.
+    // This releases Bluetooth memory for the current boot.
+    // After this, Bluetooth cannot be used until reboot.
+    esp_bt_controller_mem_release(ESP_BT_MODE_BTDM);
+  }
+
   WiFi.mode(WIFI_STA);
+
+  if (WIFI_LIMIT_TX_POWER) {
+    esp_wifi_set_max_tx_power(WIFI_TX_POWER_QDBM);
+  }
+
   WiFi.setAutoReconnect(true);
   WiFi.persistent(false);
 

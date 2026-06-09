@@ -1,4 +1,4 @@
-#ifndef SMARI_WIFI_H
+#ifndef SMARI_WIFI_Hc:\Users\mikel\Documents\Arduino\SmaRI\Secrets.h
 #define SMARI_WIFI_H
 
 #include <Arduino.h>

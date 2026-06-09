@@ -50,8 +50,6 @@ void SmaRiWebServer::registerRoutes() {
   });
 
   _server.onNotFound([this]() {
-    if (!requireAuth()) return;
-
     _server.send(404, "text/plain", "Not Found");
   });
 
@@ -338,34 +336,36 @@ void SmaRiWebServer::setRelayCommandHandler(
   _relayHandler = handler;
 }
 
-bool SmaRiWebServer::requireAuth() {
-  if (!WEB_AUTH_ENABLED) return true;
+bool SmaRiWebServer::requireAuth(bool countFailure) {
+  if (!WEB_AUTH_ENABLED) {
+    return true;
+  }
 
   const unsigned long now = millis();
 
-  // Lockout active
-  if (_lockoutUntilMs > now) {
+  // If lockout is active, block the request.
+  // isLockoutActive() also clears the lockout automatically when expired.
+  if (isLockoutActive(now)) {
     _server.send(403, "text/plain", "Temporarily locked");
     return false;
   }
 
-  // Auth success
+  // Authentication success
   if (_server.authenticate(WEB_USER, WEB_PASS)) {
     _authFailures = 0;
+    _lastAuthFailureMs = 0;
     return true;
   }
 
-  // Auth failure
-  _authFailures++;
+  // Authentication failure
+  if (countFailure) {
+    registerAuthFailure(now);
 
-  // Progressive delay
-  if (_authFailures >= 4 && _authFailures < 7) {
-    delay(2000); // short penalty
-  }
-
-  // Hard lockout
-  if (_authFailures >= 7) {
-    _lockoutUntilMs = now + (5UL * 60UL * 1000UL); // 5 minutes
+    // If this failed attempt triggered the lockout, return locked immediately.
+    if (isLockoutActive(now)) {
+      _server.send(403, "text/plain", "Temporarily locked");
+      return false;
+    }
   }
 
   _server.requestAuthentication();
@@ -374,4 +374,52 @@ bool SmaRiWebServer::requireAuth() {
 
 void SmaRiWebServer::setLogProvider(std::function<String()> provider) {
   _logProvider = provider;
+}
+
+bool SmaRiWebServer::isLockoutActive(unsigned long now) {
+  if (!_lockoutActive) {
+    return false;
+  }
+
+  // Rollover-safe millis() comparison.
+  if ((unsigned long)(now - _lockoutStartedMs) >= WEB_AUTH_LOCKOUT_MS) {
+    clearLockout();
+    return false;
+  }
+
+  return true;
+}
+
+void SmaRiWebServer::startLockout(unsigned long now) {
+  _lockoutActive = true;
+  _lockoutStartedMs = now;
+
+  // Important: reset failures when lockout starts.
+  // Otherwise the first bad request after expiry would immediately lock again.
+  _authFailures = 0;
+  _lastAuthFailureMs = 0;
+}
+
+void SmaRiWebServer::clearLockout() {
+  _lockoutActive = false;
+  _lockoutStartedMs = 0;
+
+  // Important: after lockout expiry, start clean.
+  _authFailures = 0;
+  _lastAuthFailureMs = 0;
+}
+
+void SmaRiWebServer::registerAuthFailure(unsigned long now) {
+  // Forget old failed attempts after the configured window.
+  if (_authFailures > 0 &&
+      (unsigned long)(now - _lastAuthFailureMs) > WEB_AUTH_FAILURE_WINDOW_MS) {
+    _authFailures = 0;
+  }
+
+  _authFailures++;
+  _lastAuthFailureMs = now;
+
+  if (_authFailures >= WEB_AUTH_MAX_FAILURES) {
+    startLockout(now);
+  }
 }
